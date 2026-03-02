@@ -1,0 +1,27 @@
+<div class="page">
+  <div class="card">
+    <h1>🃏 Planning Poker</h1>
+
+    <div class="field">
+      <label>Your name</label>
+      <input [(ngModel)]="name" placeholder="e.g. Alice" (keyup.enter)="roomId ? joinRoom() : createRoom()" autofocus />
+    </div>
+
+    <button class="btn btn-primary" (click)="createRoom()" [disabled]="loading">
+      Create new room
+    </button>
+
+    <div class="divider">or join existing</div>
+
+    <div class="field">
+      <label>Room ID</label>
+      <input [(ngModel)]="roomId" placeholder="e.g. AB12C" (keyup.enter)="joinRoom()" style="text-transform:uppercase" />
+    </div>
+
+    <button class="btn btn-secondary" (click)="joinRoom()" [disabled]="loading">
+      Join room
+    </button>
+
+    <p class="error" *ngIf="error">{{ error }}</p>
+  </div>
+</div>

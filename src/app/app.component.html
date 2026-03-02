@@ -1,0 +1,5 @@
+<app-home *ngIf="!roomState" (roomJoined)="onRoomJoined($event)"></app-home>
+<app-room *ngIf="roomState" [roomState]="roomState"
+  (roomUpdated)="onRoomUpdated($event)"
+  (left)="onLeft()">
+</app-room>

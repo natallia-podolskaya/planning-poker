@@ -1,0 +1,74 @@
+<div class="room">
+  <header class="room-header">
+    <div class="room-info">
+      <span class="room-label">Room</span>
+      <span class="room-id">{{ roomState.roomId }}</span>
+    </div>
+    <button class="btn btn-ghost" (click)="leaveRoom()">Leave</button>
+  </header>
+
+  <div class="layout">
+    <!-- Members panel -->
+    <aside class="members-panel">
+      <h3>Participants ({{ roomState.members.length }})</h3>
+      <ul>
+        <li *ngFor="let m of roomState.members; trackBy: trackBySocket" class="member" [class.voted]="m.voted">
+          <span class="member-name">{{ m.name }}</span>
+          <span class="member-vote" *ngIf="roomState.revealed && m.vote !== null">{{ m.vote }}</span>
+          <span class="member-badge" *ngIf="!roomState.revealed">{{ m.voted ? '✓' : '…' }}</span>
+          <span class="sm-badge" *ngIf="roomState.smSocketId === m.socketId">SM</span>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Main area -->
+    <main class="main-area">
+      <!-- Results -->
+      <div class="results" *ngIf="roomState.revealed">
+        <div class="result-cards">
+          <div class="result-card" *ngFor="let m of roomState.members; trackBy: trackBySocket">
+            <div class="result-value">{{ m.vote ?? '—' }}</div>
+            <div class="result-name">{{ m.name }}</div>
+          </div>
+        </div>
+        <div class="average-row">
+          <span class="average-label">Average</span>
+          <span class="average-value">{{ average() }}</span>
+        </div>
+      </div>
+
+      <!-- Waiting state -->
+      <div class="waiting" *ngIf="!roomState.revealed">
+        <div class="vote-count">
+          {{ roomState.members | votedCount }} / {{ roomState.members.length }} voted
+        </div>
+        <div class="waiting-dots" *ngIf="!allVoted">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="all-voted-msg" *ngIf="allVoted">Everyone voted!</div>
+      </div>
+
+      <!-- SM controls -->
+      <div class="sm-controls" *ngIf="isSm">
+        <button class="btn btn-primary" (click)="flipCards()" [disabled]="roomState.revealed || !allVoted">
+          Flip Cards
+        </button>
+        <button class="btn btn-secondary" (click)="resetRoom()">
+          New Round
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Card picker -->
+  <div class="card-picker" *ngIf="!roomState.revealed">
+    <div
+      *ngFor="let card of cards"
+      class="pick-card"
+      [class.selected]="selectedCard === card"
+      (click)="vote(card)"
+    >
+      {{ card }}
+    </div>
+  </div>
+</div>
