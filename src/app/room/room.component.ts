@@ -21,7 +21,9 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   cards = CARDS;
   selectedCard: string | null = null;
+  copied = false;
   private sub!: Subscription;
+  private copiedTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private socketService: SocketService) {}
 
@@ -38,6 +40,15 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.sub.unsubscribe();
+    if (this.copiedTimeout) clearTimeout(this.copiedTimeout);
+  }
+
+  copyRoomId() {
+    navigator.clipboard.writeText(this.roomState.roomId).then(() => {
+      this.copied = true;
+      if (this.copiedTimeout) clearTimeout(this.copiedTimeout);
+      this.copiedTimeout = setTimeout(() => { this.copied = false; }, 5000);
+    });
   }
 
   get isSm(): boolean {

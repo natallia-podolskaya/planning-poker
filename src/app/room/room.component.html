@@ -2,7 +2,11 @@
   <header class="room-header">
     <div class="room-info">
       <span class="room-label">Room</span>
-      <span class="room-id">{{ roomState.roomId }}</span>
+      <span class="room-id-wrapper" (click)="copyRoomId()" title="Click to copy">
+        <span class="room-id">{{ roomState.roomId }}</span>
+        <span class="copy-icon">⎘</span>
+        <span class="copy-tooltip" [class.visible]="copied">Copied to Clipboard</span>
+      </span>
     </div>
     <button class="btn btn-ghost" (click)="leaveRoom()">Leave</button>
   </header>
