@@ -28,10 +28,20 @@ export class RoomComponent implements OnInit, OnDestroy {
   constructor(private socketService: SocketService) {}
 
   ngOnInit() {
+    // Restore local card selection after a server restart
+    if (!this.roomState.revealed) {
+      const raw = sessionStorage.getItem('poker_session');
+      if (raw) {
+        const { vote } = JSON.parse(raw);
+        if (vote) this.selectedCard = vote;
+      }
+    }
+
     this.sub = this.socketService.on<RoomState>('room-updated').subscribe((state) => {
       // Reset selection when SM resets the room
       if (!state.revealed && this.roomState.revealed) {
         this.selectedCard = null;
+        this.persistVote(null);
       }
       this.roomState = state;
       this.roomUpdated.emit(state);
@@ -52,7 +62,7 @@ export class RoomComponent implements OnInit, OnDestroy {
   }
 
   get isSm(): boolean {
-    return this.roomState.smSocketId === this.socketService.socketId;
+    return this.roomState.smUserId === this.socketService.userId;
   }
 
   get allVoted(): boolean {
@@ -62,6 +72,7 @@ export class RoomComponent implements OnInit, OnDestroy {
   vote(value: string) {
     if (this.roomState.revealed) return;
     this.selectedCard = value;
+    this.persistVote(value);
     this.socketService.emit('vote', { roomId: this.roomState.roomId, value });
   }
 
@@ -71,7 +82,15 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   resetRoom() {
     this.selectedCard = null;
+    this.persistVote(null);
     this.socketService.emit('reset-room', { roomId: this.roomState.roomId });
+  }
+
+  private persistVote(vote: string | null) {
+    const raw = sessionStorage.getItem('poker_session');
+    if (raw) {
+      sessionStorage.setItem('poker_session', JSON.stringify({ ...JSON.parse(raw), vote }));
+    }
   }
 
   leaveRoom() {
@@ -86,5 +105,5 @@ export class RoomComponent implements OnInit, OnDestroy {
     return (numeric.reduce((a, b) => a + b, 0) / numeric.length).toFixed(1);
   }
 
-  trackBySocket(_: number, m: Member) { return m.socketId; }
+  trackBySocket(_: number, m: Member) { return m.userId; }
 }

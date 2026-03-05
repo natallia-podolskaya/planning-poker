@@ -1,5 +1,5 @@
 export interface Member {
-  socketId: string;
+  userId: string;
   name: string;
   voted: boolean;
   vote: string | null;
@@ -7,7 +7,7 @@ export interface Member {
 
 export interface RoomState {
   roomId: string;
-  smSocketId: string;
+  smUserId: string;
   revealed: boolean;
   members: Member[];
 }

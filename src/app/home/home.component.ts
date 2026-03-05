@@ -40,7 +40,8 @@ export class HomeComponent {
     if (!this.name.trim()) { this.error = 'Please enter your name.'; return; }
     this.error = '';
     this.loading = true;
-    this.socketService.emit('create-room', { name: this.name.trim() });
+    sessionStorage.setItem('poker_session', JSON.stringify({ name: this.name.trim() }));
+    this.socketService.emit('create-room', { name: this.name.trim(), userId: this.socketService.userId });
   }
 
   joinRoom() {
@@ -48,6 +49,7 @@ export class HomeComponent {
     if (!this.roomId.trim()) { this.error = 'Please enter a room ID.'; return; }
     this.error = '';
     this.loading = true;
-    this.socketService.emit('join-room', { roomId: this.roomId.trim().toUpperCase(), name: this.name.trim() });
+    sessionStorage.setItem('poker_session', JSON.stringify({ name: this.name.trim() }));
+    this.socketService.emit('join-room', { roomId: this.roomId.trim().toUpperCase(), name: this.name.trim(), userId: this.socketService.userId });
   }
 }
