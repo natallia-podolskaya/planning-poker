@@ -30,7 +30,7 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // Re-join after a network drop (socket reconnects without page refresh)
     this.subs.add(
-      this.socketService.onReconnect().subscribe(() => this.tryRejoinFromSession())
+      this.socketService.onReconnect().subscribe(() => this.tryRejoinFromSession(true))
     );
 
     // Handle room-joined while already in a room, or while reconnecting after server restart
@@ -64,13 +64,20 @@ export class AppComponent implements OnInit, OnDestroy {
     this.stopRetry();
   }
 
-  private tryRejoinFromSession() {
+  private tryRejoinFromSession(isSocketReconnect = false) {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return;
     const { roomId, name, isSM, vote, revealed } = JSON.parse(raw);
     if (roomId && name) {
       this.reconnecting = true;
-      this.socketService.emit('join-room', { roomId, name, userId: this.socketService.userId, isSM: !!isSM, vote: vote ?? null, revealed: !!revealed });
+      // isSM room-recreation is only safe on actual socket reconnect (network drop or server restart).
+      // On a fresh page load we never recreate — avoids phantom rooms with wrong SM.
+      this.socketService.emit('join-room', {
+        roomId, name, userId: this.socketService.userId,
+        isSM: isSocketReconnect && !!isSM,
+        vote: vote ?? null,
+        revealed: !!revealed,
+      });
     }
   }
 
@@ -102,6 +109,7 @@ export class AppComponent implements OnInit, OnDestroy {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return;
     const session = JSON.parse(raw);
+    session.roomId = state.roomId;
     session.isSM = state.smUserId === this.socketService.userId;
     session.revealed = state.revealed;
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
