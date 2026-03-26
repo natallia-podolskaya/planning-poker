@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import lottie, { AnimationItem } from 'lottie-web';
 import { SocketService } from '../socket.service';
 import { RoomState } from '../types';
 
@@ -11,13 +12,16 @@ import { RoomState } from '../types';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent {
+export class HomeComponent implements AfterViewInit, OnDestroy {
   @Output() roomJoined = new EventEmitter<RoomState>();
+  @ViewChild('lottieContainer') lottieContainer!: ElementRef;
 
   name = '';
   roomId = '';
   error = '';
   loading = false;
+
+  private animation!: AnimationItem;
 
   constructor(private socketService: SocketService) {
     this.socketService.on<RoomState>('room-created').subscribe((state) => {
@@ -34,6 +38,20 @@ export class HomeComponent {
       this.loading = false;
       this.error = message;
     });
+  }
+
+  ngAfterViewInit() {
+    this.animation = lottie.loadAnimation({
+      container: this.lottieContainer.nativeElement,
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      path: 'assets/animations/cards.json',
+    });
+  }
+
+  ngOnDestroy() {
+    this.animation?.destroy();
   }
 
   createRoom() {
