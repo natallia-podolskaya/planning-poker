@@ -36,12 +36,17 @@ export class RoomComponent implements OnInit, OnDestroy {
         if (vote) this.selectedCard = vote;
       }
     }
+    // SM starts with ☕ pre-selected if no previous selection
+    if (this.isSm && !this.selectedCard) {
+      this.selectedCard = '☕';
+      this.persistVote('☕');
+    }
 
     this.sub = this.socketService.on<RoomState>('room-updated').subscribe((state) => {
       // Reset selection when SM resets the room
       if (!state.revealed && this.roomState.revealed) {
-        this.selectedCard = null;
-        this.persistVote(null);
+        this.selectedCard = this.isSm ? '☕' : null;
+        this.persistVote(this.selectedCard);
       }
       this.roomState = state;
       this.roomUpdated.emit(state);
@@ -81,8 +86,8 @@ export class RoomComponent implements OnInit, OnDestroy {
   }
 
   resetRoom() {
-    this.selectedCard = null;
-    this.persistVote(null);
+    this.selectedCard = '☕';
+    this.persistVote('☕');
     this.socketService.emit('reset-room', { roomId: this.roomState.roomId });
   }
 

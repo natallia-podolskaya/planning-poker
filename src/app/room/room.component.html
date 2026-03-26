@@ -54,7 +54,7 @@
 
       <!-- SM controls -->
       <div class="sm-controls" *ngIf="isSm">
-        <button class="btn btn-primary" (click)="flipCards()" [disabled]="roomState.revealed || !allVoted">
+        <button class="btn btn-primary" (click)="flipCards()" [disabled]="roomState.revealed">
           Flip Cards
         </button>
         <button class="btn btn-secondary" (click)="resetRoom()">

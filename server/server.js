@@ -86,7 +86,7 @@ io.on('connection', (socket) => {
     const roomId = generateRoomId();
     rooms[roomId] = {
       smUserId: userId,
-      members: { [userId]: { name, vote: null, socketId: socket.id } },
+      members: { [userId]: { name, vote: '☕', socketId: socket.id } },
       revealed: false,
     };
     socketToUser[socket.id] = { userId, roomId };
@@ -171,6 +171,7 @@ io.on('connection', (socket) => {
     if (!room || room.smUserId !== userId) return;
     room.revealed = false;
     Object.values(room.members).forEach((m) => (m.vote = null));
+    if (room.members[room.smUserId]) room.members[room.smUserId].vote = '☕';
     broadcastRoom(roomId);
     log('round-reset', { room: roomId, by: room.members[userId]?.name ?? socket.id });
   });
