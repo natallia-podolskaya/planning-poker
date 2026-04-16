@@ -8,7 +8,10 @@
         <span class="copy-tooltip" [class.visible]="copied">Copied to Clipboard</span>
       </span>
     </div>
-    <button class="btn btn-ghost" (click)="leaveRoom()">Leave</button>
+    <div class="header-right">
+      <app-theme-picker></app-theme-picker>
+      <button class="btn btn-ghost" (click)="leaveRoom()">Leave</button>
+    </div>
   </header>
 
   <div class="layout">

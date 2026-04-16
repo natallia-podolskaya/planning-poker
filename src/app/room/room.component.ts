@@ -4,13 +4,14 @@ import { SocketService } from '../socket.service';
 import { Member, RoomState } from '../types';
 import { VotedCountPipe } from '../voted-count.pipe';
 import { Subscription } from 'rxjs';
+import { ThemePickerComponent } from '../theme-picker/theme-picker.component';
 
 const CARDS = ['1', '2', '3', '5', '8', '13', '21', '34', '?', '☕'];
 
 @Component({
   selector: 'app-room',
   standalone: true,
-  imports: [CommonModule, VotedCountPipe],
+  imports: [CommonModule, VotedCountPipe, ThemePickerComponent],
   templateUrl: './room.component.html',
   styleUrl: './room.component.scss'
 })

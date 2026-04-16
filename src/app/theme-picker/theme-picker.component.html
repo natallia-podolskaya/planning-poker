@@ -1,0 +1,16 @@
+<div class="theme-picker" role="radiogroup" aria-label="Color theme">
+  <button
+    *ngFor="let t of themes"
+    type="button"
+    class="swatch"
+    [class.selected]="current === t.id"
+    role="radio"
+    [attr.aria-checked]="current === t.id"
+    [attr.aria-label]="t.name"
+    [title]="t.name"
+    [style.background]="t.swatchBg"
+    (click)="select(t.id)"
+  >
+    <span class="dot" [style.background]="t.swatchAccent"></span>
+  </button>
+</div>

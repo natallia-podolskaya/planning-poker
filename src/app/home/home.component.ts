@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import lottie, { AnimationItem } from 'lottie-web';
 import { SocketService } from '../socket.service';
 import { RoomState } from '../types';
+import { ThemePickerComponent } from '../theme-picker/theme-picker.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ThemePickerComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })

@@ -4,6 +4,7 @@ import { HomeComponent } from './home/home.component';
 import { RoomComponent } from './room/room.component';
 import { RoomState } from './types';
 import { SocketService } from './socket.service';
+import { ThemeService } from './theme.service';
 import { Subscription } from 'rxjs';
 
 const SESSION_KEY = 'poker_session';
@@ -25,7 +26,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private retryTimer: ReturnType<typeof setInterval> | null = null;
   private retryCount = 0;
 
-  constructor(private socketService: SocketService) {}
+  constructor(private socketService: SocketService, _theme: ThemeService) {}
 
   ngOnInit() {
     // Re-join after a network drop (socket reconnects without page refresh)
