@@ -21,7 +21,7 @@
       <ul>
         <li *ngFor="let m of roomState.members; trackBy: trackBySocket" class="member" [class.voted]="m.voted">
           <span class="member-name">{{ m.name }}</span>
-          <span class="member-vote" *ngIf="roomState.revealed && m.vote !== null">{{ m.vote }}</span>
+          <span class="member-vote" *ngIf="roomState.revealed && m.vote !== null">{{ displayVote(m.vote) }}</span>
           <span class="member-badge" *ngIf="!roomState.revealed">{{ m.voted ? '✓' : '…' }}</span>
           <span class="sm-badge" *ngIf="roomState.smUserId === m.userId">SM</span>
         </li>
@@ -34,7 +34,7 @@
       <div class="results" *ngIf="roomState.revealed">
         <div class="result-cards">
           <div class="result-card" *ngFor="let m of roomState.members; trackBy: trackBySocket">
-            <div class="result-value">{{ m.vote ?? '—' }}</div>
+            <div class="result-value">{{ displayVote(m.vote) }}</div>
             <div class="result-name">{{ m.name }}</div>
           </div>
         </div>
