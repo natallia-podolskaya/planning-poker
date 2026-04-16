@@ -2,9 +2,11 @@ import { AfterViewInit, Component, ElementRef, EventEmitter, OnDestroy, Output, 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import lottie, { AnimationItem } from 'lottie-web';
+import { Subscription } from 'rxjs';
 import { SocketService } from '../socket.service';
 import { RoomState } from '../types';
 import { ThemePickerComponent } from '../theme-picker/theme-picker.component';
+import { ThemeService } from '../theme.service';
 
 @Component({
   selector: 'app-home',
@@ -22,9 +24,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   error = '';
   loading = false;
 
-  private animation!: AnimationItem;
+  private animation: AnimationItem | null = null;
+  private animationData: any = null;
+  private themeSub?: Subscription;
 
-  constructor(private socketService: SocketService) {
+  constructor(private socketService: SocketService, private themeService: ThemeService) {
     this.socketService.on<RoomState>('room-created').subscribe((state) => {
       this.loading = false;
       this.roomJoined.emit(state);
@@ -41,18 +45,48 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  ngAfterViewInit() {
+  async ngAfterViewInit() {
+    this.animationData = await fetch('assets/animations/cards.json').then(r => r.json());
+    this.mountAnimation();
+    this.themeSub = this.themeService.theme$.subscribe(() => this.mountAnimation());
+  }
+
+  ngOnDestroy() {
+    this.animation?.destroy();
+    this.themeSub?.unsubscribe();
+  }
+
+  private mountAnimation() {
+    if (!this.animationData || !this.lottieContainer) return;
+    this.animation?.destroy();
+    const data = JSON.parse(JSON.stringify(this.animationData));
+    const colors = [
+      this.readCssColor('--anim-card-1'),
+      this.readCssColor('--anim-card-2'),
+      this.readCssColor('--anim-card-3'),
+    ];
+    data.layers.forEach((layer: any, i: number) => {
+      const fill = layer.shapes?.[0]?.it?.find((it: any) => it.ty === 'fl');
+      if (fill && colors[i]) fill.c.k = colors[i];
+    });
     this.animation = lottie.loadAnimation({
       container: this.lottieContainer.nativeElement,
       renderer: 'svg',
       loop: true,
       autoplay: true,
-      path: 'assets/animations/cards.json',
+      animationData: data,
     });
   }
 
-  ngOnDestroy() {
-    this.animation?.destroy();
+  private readCssColor(varName: string): [number, number, number, number] | null {
+    const raw = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+    if (!raw) return null;
+    const hex = raw.replace('#', '');
+    if (hex.length !== 6) return null;
+    const r = parseInt(hex.slice(0, 2), 16) / 255;
+    const g = parseInt(hex.slice(2, 4), 16) / 255;
+    const b = parseInt(hex.slice(4, 6), 16) / 255;
+    return [r, g, b, 1];
   }
 
   createRoom() {
