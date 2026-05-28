@@ -7,7 +7,8 @@ import { Subscription } from 'rxjs';
 import { ThemePickerComponent } from '../theme-picker/theme-picker.component';
 
 const CARDS = ['1', '2', '3', '5', '8', '13', '21', '34', '?', '☕'];
-const FUN_EMOJIS = ['🍺', '🍷', '🥂', '🍕', '🍩', '🍿', '🌮', '🍔', '🎉', '🦄'];
+const FUN_EMOJIS = ['🍺', '🍷', '🥂', '🍕', '🍩', '🍿', '🌮', '🍔', '🍪', '🍦', '🧁', '🎉', '🦄', '🌈'];
+const LASSAAD_EMOJIS = ['🥘', '🫓', '🌶️', '🫒', '🌴', '🍵', '🥐', '🥖', '🧀', '🗼', '🍦', '🦄'];
 
 @Component({
   selector: 'app-room',
@@ -26,7 +27,7 @@ export class RoomComponent implements OnInit, OnDestroy {
   copied = false;
   private sub!: Subscription;
   private copiedTimeout: ReturnType<typeof setTimeout> | null = null;
-  private coffeeGag: string | null = null;
+  private coffeeGags = new Map<string, string>();
 
   constructor(private socketService: SocketService) {}
 
@@ -44,18 +45,18 @@ export class RoomComponent implements OnInit, OnDestroy {
       this.selectedCard = '☕';
       this.persistVote('☕');
     }
-    if (this.roomState.revealed) this.coffeeGag = this.pickFunEmoji();
+    if (this.roomState.revealed) this.populateCoffeeGags(this.roomState.members);
 
     this.sub = this.socketService.on<RoomState>('room-updated').subscribe((state) => {
       // Reset selection when SM resets the room
       if (!state.revealed && this.roomState.revealed) {
         this.selectedCard = this.isSm ? '☕' : null;
         this.persistVote(this.selectedCard);
-        this.coffeeGag = null;
+        this.coffeeGags.clear();
       }
-      // Flipped cards → pick a fresh gag emoji
+      // Flipped cards → pick fresh gag emojis per coffee-voter
       if (state.revealed && !this.roomState.revealed) {
-        this.coffeeGag = this.pickFunEmoji();
+        this.populateCoffeeGags(state.members);
       }
       this.roomState = state;
       this.roomUpdated.emit(state);
@@ -121,12 +122,23 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   trackBySocket(_: number, m: Member) { return m.userId; }
 
-  displayVote(vote: string | null): string {
-    if (vote === '☕' && this.roomState.revealed && this.coffeeGag) return this.coffeeGag;
-    return vote ?? '—';
+  displayVote(m: Member): string {
+    if (m.vote === '☕' && this.roomState.revealed) {
+      const gag = this.coffeeGags.get(m.userId);
+      if (gag) return gag;
+    }
+    return m.vote ?? '—';
   }
 
-  private pickFunEmoji(): string {
-    return FUN_EMOJIS[Math.floor(Math.random() * FUN_EMOJIS.length)];
+  private populateCoffeeGags(members: Member[]) {
+    this.coffeeGags.clear();
+    for (const m of members) {
+      if (m.vote === '☕') this.coffeeGags.set(m.userId, this.pickGagFor(m.name));
+    }
+  }
+
+  private pickGagFor(name: string): string {
+    const pool = name.trim().toLowerCase() === 'lassaad' ? LASSAAD_EMOJIS : FUN_EMOJIS;
+    return pool[Math.floor(Math.random() * pool.length)];
   }
 }
