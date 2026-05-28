@@ -132,18 +132,13 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   private populateCoffeeGags(members: Member[]) {
     this.coffeeGags.clear();
-    console.log('[coffee-gag] populateCoffeeGags members=', members.map(m => ({ userId: m.userId, name: m.name, vote: m.vote })));
     for (const m of members) {
       if (m.vote === '☕') this.coffeeGags.set(m.userId, this.pickGagFor(m.name));
     }
   }
 
   private pickGagFor(name: string): string {
-    const normalized = (name ?? '').trim().toLowerCase();
-    const isLassaad = normalized === 'lassaad';
-    const pool = isLassaad ? LASSAAD_EMOJIS : FUN_EMOJIS;
-    const emoji = pool[Math.floor(Math.random() * pool.length)];
-    console.log('[coffee-gag] pickGagFor name=', JSON.stringify(name), 'normalized=', JSON.stringify(normalized), 'codepoints=', [...normalized].map(c => c.codePointAt(0)?.toString(16)), 'isLassaad=', isLassaad, 'emoji=', emoji);
-    return emoji;
+    const pool = name.trim().toLowerCase() === 'lassaad' ? LASSAAD_EMOJIS : FUN_EMOJIS;
+    return pool[Math.floor(Math.random() * pool.length)];
   }
 }
