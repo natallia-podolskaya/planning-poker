@@ -1,7 +1,31 @@
 *, *::before, *::after { box-sizing: border-box; }
 
-/* ── Default theme: Midnight ── */
 :root {
+  --bg-page: #000000;
+  --bg-panel: #1c1c1e;
+  --bg-elevated: #2c2c2e;
+  --bg-elevated-hover: #373737;
+  --border: #444444;
+  --tooltip-bg: #373737;
+  --text: #ffffff;
+  --text-muted: #b0b0b0;
+  --text-subtle: #808080;
+  --text-placeholder: #6e6e6e;
+  --accent: #008fa4;
+  --accent-contrast: #ffffff;
+  --accent-wash: rgba(0, 143, 164, 0.16);
+  --accent-glow: rgba(0, 143, 164, 0.55);
+  --success: #0cad3a;
+  --warning: #e19d00;
+  --warning-wash: rgba(225, 157, 0, 0.15);
+  --danger: #fa4343;
+  --shadow-card: rgba(0, 0, 0, 0.6);
+  --anim-card-1: #007e90;
+  --anim-card-2: #008fa4;
+  --anim-card-3: #7cc4d3;
+}
+
+[data-theme="midnight"] {
   --bg-page: #1a1a2e;
   --bg-panel: #16213e;
   --bg-elevated: #0f3460;

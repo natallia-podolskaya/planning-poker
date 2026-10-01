@@ -6,7 +6,7 @@ import { VotedCountPipe } from '../voted-count.pipe';
 import { Subscription } from 'rxjs';
 import { ThemePickerComponent } from '../theme-picker/theme-picker.component';
 
-const CARDS = ['1', '2', '3', '5', '8', '13', '21', '34', '?', '☕'];
+const CARDS = ['1', '2', '3', '5', '8', '13', '21', '?', '☕'];
 const FUN_EMOJIS = ['🍺', '🍷', '🥂', '🍕', '🍩', '🍿', '🌮', '🍔', '🍪', '🍦', '🧁', '🎉', '🦄', '🌈'];
 const LASSAAD_EMOJIS = ['🥘', '🫓', '🌶️', '🫒', '🌴', '🍵', '🥐', '🥖', '🧀', '🗼', '🍦', '🦄'];
 

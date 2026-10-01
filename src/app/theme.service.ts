@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-export type ThemeId = 'midnight' | 'ocean' | 'forest' | 'sunset' | 'light';
+export type ThemeId = 'ubigi' | 'midnight' | 'ocean' | 'forest' | 'sunset' | 'light';
 
 export interface ThemeOption {
   id: ThemeId;
@@ -11,6 +11,7 @@ export interface ThemeOption {
 }
 
 export const THEMES: ThemeOption[] = [
+  { id: 'ubigi',    name: 'Ubigi',    swatchBg: '#000000', swatchAccent: '#008fa4' },
   { id: 'midnight', name: 'Midnight', swatchBg: '#1a1a2e', swatchAccent: '#6366f1' },
   { id: 'ocean',    name: 'Ocean',    swatchBg: '#0c2740', swatchAccent: '#06b6d4' },
   { id: 'forest',   name: 'Forest',   swatchBg: '#13261f', swatchAccent: '#10b981' },
@@ -19,7 +20,7 @@ export const THEMES: ThemeOption[] = [
 ];
 
 const STORAGE_KEY = 'poker_theme';
-const DEFAULT_THEME: ThemeId = 'midnight';
+const DEFAULT_THEME: ThemeId = 'ubigi';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
