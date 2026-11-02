@@ -104,3 +104,17 @@
   text-align: center;
   margin: 0;
 }
+
+.team-room-hint {
+  color: var(--text-placeholder);
+  font-size: 0.85rem;
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+    margin-left: 0.25rem;
+  }
+}

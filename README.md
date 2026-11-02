@@ -34,6 +34,16 @@ Open **http://localhost:3000** in your browser.
 2. Enter your name and the Room ID shared by the Scrum Master.
 3. Click **Join room**.
 
+### Team room (fixed room, no create step)
+
+Teams that meet regularly can skip creating a room. The server has a short list of **team rooms** with fixed IDs (see `TEAM_ROOMS` at the top of `server/server.js`; the default is `MOJITO`):
+
+- Nobody creates a team room. Whoever opens it first, by entering their name and `MOJITO` as the Room ID, brings it to life. The same happens after a server restart, so there is no waiting for the Scrum Master to reconnect.
+- The **Scrum Master is elected by name**, not by who arrived first. For `MOJITO` the priority is: a member whose name starts with `Las`, otherwise one whose name starts with `Jul`, otherwise the current SM, otherwise the earliest member. The role moves automatically as people join or leave.
+- Once you have joined a team room, your browser remembers it (name and room ID in localStorage). The **next time you open the app you join it automatically** without seeing the home page.
+- To get back to the home page, click **Leave**. The form comes prefilled; you can change your name, join another room, or create a new one. Auto-join stays off for that tab until you close it.
+- To stop being remembered, click **Forget team room** on the home page.
+
 ### Voting
 
 - Each participant picks a card from the row at the bottom of the screen (Fibonacci sequence + `?` and `☕`).
@@ -43,7 +53,7 @@ Open **http://localhost:3000** in your browser.
 
 ### Scrum Master controls
 
-Only the person who created the room has these buttons:
+Only the Scrum Master has these buttons (the room creator, or in a team room the elected member):
 
 | Button | When active | What it does |
 |---|---|---|

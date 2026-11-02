@@ -27,5 +27,10 @@
     </button>
 
     <p class="error" *ngIf="error">{{ error }}</p>
+
+    <p class="team-room-hint" *ngIf="teamRoomId">
+      Next time you open the app you will join <strong>{{ teamRoomId }}</strong> automatically.
+      <a href="#" (click)="forgetTeamRoom(); $event.preventDefault()">Forget team room</a>
+    </p>
   </div>
 </div>

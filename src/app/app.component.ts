@@ -3,11 +3,14 @@ import { CommonModule } from '@angular/common';
 import { HomeComponent } from './home/home.component';
 import { RoomComponent } from './room/room.component';
 import { RoomState } from './types';
+import { readTeamRoomMarker, saveTeamRoomMarker } from './team-room';
 import { SocketService } from './socket.service';
 import { ThemeService } from './theme.service';
 import { Subscription } from 'rxjs';
 
 const SESSION_KEY = 'poker_session';
+// Tab-scoped: set on Leave so the home page does not bounce straight back into the team room
+const SKIP_AUTO_JOIN_KEY = 'poker_skipAutoJoin';
 const RETRY_DELAY = 3_000;
 const MAX_RETRIES = 10;
 
@@ -21,6 +24,7 @@ const MAX_RETRIES = 10;
 export class AppComponent implements OnInit, OnDestroy {
   roomState: RoomState | null = null;
   reconnecting = false;
+  autoJoining = false;
 
   private subs = new Subscription();
   private retryTimer: ReturnType<typeof setInterval> | null = null;
@@ -39,6 +43,7 @@ export class AppComponent implements OnInit, OnDestroy {
       this.socketService.on<RoomState>('room-joined').subscribe((state) => {
         if (this.roomState !== null || this.reconnecting) {
           this.stopRetry();
+          this.autoJoining = false;
           this.roomState = state;
           this.updateSession(state);
           this.reVoteIfNeeded(state);
@@ -58,6 +63,20 @@ export class AppComponent implements OnInit, OnDestroy {
 
     // On page load, attempt to restore session (covers page refresh case)
     this.tryRejoinFromSession();
+    // Otherwise, remembered team members go straight into their team room
+    this.tryAutoJoinTeamRoom();
+  }
+
+  /** Fresh tab, no active session: join the remembered team room without showing the home form. */
+  private tryAutoJoinTeamRoom() {
+    if (sessionStorage.getItem(SESSION_KEY)) return;
+    if (sessionStorage.getItem(SKIP_AUTO_JOIN_KEY)) return;
+    const marker = readTeamRoomMarker();
+    if (!marker) return;
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ name: marker.name }));
+    this.autoJoining = true;
+    this.reconnecting = true;
+    this.socketService.emit('join-room', { roomId: marker.roomId, name: marker.name, userId: this.socketService.userId });
   }
 
   ngOnDestroy() {
@@ -114,6 +133,9 @@ export class AppComponent implements OnInit, OnDestroy {
     session.isSM = state.smUserId === this.socketService.userId;
     session.revealed = state.revealed;
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    if (state.isTeamRoom && session.name) {
+      saveTeamRoomMarker({ roomId: state.roomId, name: session.name });
+    }
   }
 
   private reVoteIfNeeded(state: RoomState) {
@@ -138,7 +160,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   onLeft() {
     sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.setItem(SKIP_AUTO_JOIN_KEY, '1');
     this.stopRetry();
+    this.autoJoining = false;
     this.roomState = null;
   }
 }

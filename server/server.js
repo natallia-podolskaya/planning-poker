@@ -28,6 +28,20 @@ const disconnectTimers = {};
 
 const GRACE_MS = 15_000;
 
+// ── Team rooms ───────────────────────────────────────────────────────────────
+// Fixed room IDs that are created on demand by whoever joins first and never
+// need a "create" step. The Scrum Master is elected by name: the first prefix
+// in `smPriority` that matches a present member's name wins. Prefixes are
+// matched case-insensitively against the trimmed name. If no prefix matches,
+// the current SM keeps the role, or the earliest member takes it.
+const TEAM_ROOMS = {
+  MOJITO: { smPriority: ['las', 'jul'] },
+};
+
+function isTeamRoom(roomId) {
+  return Object.prototype.hasOwnProperty.call(TEAM_ROOMS, roomId);
+}
+
 function log(event, details) {
   const ts = new Date().toISOString();
   const parts = Object.entries(details).map(([k, v]) => `${k}=${v}`).join(' ');
@@ -38,6 +52,37 @@ function generateRoomId() {
   return Math.random().toString(36).substring(2, 7).toUpperCase();
 }
 
+// Returns the userId that should hold the SM role given current membership.
+function electSM(roomId) {
+  const room = rooms[roomId];
+  const memberIds = Object.keys(room.members);
+  if (isTeamRoom(roomId)) {
+    for (const prefix of TEAM_ROOMS[roomId].smPriority) {
+      const match = memberIds.find((id) =>
+        room.members[id].name.trim().toLowerCase().startsWith(prefix)
+      );
+      if (match) return match;
+    }
+  }
+  if (room.members[room.smUserId]) return room.smUserId;
+  return memberIds[0];
+}
+
+// Re-run the election after any membership change; logs if the role moved.
+function reassignSM(roomId, removedName) {
+  const room = rooms[roomId];
+  if (!room) return;
+  const previous = room.smUserId;
+  room.smUserId = electSM(roomId);
+  if (room.smUserId !== previous) {
+    log('sm-reassigned', {
+      room: roomId,
+      from: room.members[previous]?.name ?? removedName ?? previous,
+      to: room.members[room.smUserId].name,
+    });
+  }
+}
+
 function buildRoomState(roomId) {
   const room = rooms[roomId];
   if (!room) return null;
@@ -45,6 +90,7 @@ function buildRoomState(roomId) {
     roomId,
     smUserId: room.smUserId,
     revealed: room.revealed,
+    isTeamRoom: isTeamRoom(roomId),
     members: Object.entries(room.members).map(([userId, m]) => ({
       userId,
       name: m.name,
@@ -62,18 +108,13 @@ function removeMember(roomId, userId) {
   const room = rooms[roomId];
   if (!room) return;
   const name = room.members[userId]?.name ?? userId;
-  const wasSM = room.smUserId === userId;
   delete room.members[userId];
 
   if (Object.keys(room.members).length === 0) {
     delete rooms[roomId];
     log('room-closed', { room: roomId, reason: 'empty' });
   } else {
-    if (wasSM) {
-      room.smUserId = Object.keys(room.members)[0];
-      const newSM = room.members[room.smUserId].name;
-      log('sm-reassigned', { room: roomId, from: name, to: newSM });
-    }
+    reassignSM(roomId, name);
     broadcastRoom(roomId);
     log('user-left', { room: roomId, user: name, members: Object.keys(room.members).length });
   }
@@ -99,7 +140,16 @@ io.on('connection', (socket) => {
     let room = rooms[roomId];
 
     if (!room) {
-      if (isSM) {
+      if (isTeamRoom(roomId)) {
+        // Team room — created on demand by whoever arrives first (also after a restart)
+        rooms[roomId] = {
+          smUserId: userId,
+          members: {},
+          revealed: revealed ?? false,
+        };
+        room = rooms[roomId];
+        log('team-room-opened', { room: roomId, by: name });
+      } else if (isSM) {
         // SM reconnecting after server restart — recreate the room with the same ID
         rooms[roomId] = {
           smUserId: userId,
@@ -139,6 +189,13 @@ io.on('connection', (socket) => {
     // Restore vote for in-progress rounds (not revealed)
     if (vote && !room.revealed && room.members[userId]) {
       room.members[userId].vote = vote;
+    }
+
+    reassignSM(roomId);
+
+    // A freshly joined member who takes the SM role starts with ☕, like on create-room
+    if (!isReconnect && room.smUserId === userId && !room.revealed && room.members[userId].vote === null) {
+      room.members[userId].vote = '☕';
     }
 
     socketToUser[socket.id] = { userId, roomId };

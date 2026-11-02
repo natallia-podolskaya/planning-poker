@@ -7,6 +7,7 @@ import { SocketService } from '../socket.service';
 import { RoomState } from '../types';
 import { ThemePickerComponent } from '../theme-picker/theme-picker.component';
 import { ThemeService } from '../theme.service';
+import { clearTeamRoomMarker, readTeamRoomMarker } from '../team-room';
 
 @Component({
   selector: 'app-home',
@@ -23,12 +24,21 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   roomId = '';
   error = '';
   loading = false;
+  teamRoomId: string | null = null;
 
   private animation: AnimationItem | null = null;
   private animationData: any = null;
   private themeSub?: Subscription;
 
   constructor(private socketService: SocketService, private themeService: ThemeService) {
+    // Returning team members get the form prefilled with their remembered name and room
+    const marker = readTeamRoomMarker();
+    if (marker) {
+      this.teamRoomId = marker.roomId;
+      this.name = marker.name;
+      this.roomId = marker.roomId;
+    }
+
     this.socketService.on<RoomState>('room-created').subscribe((state) => {
       this.loading = false;
       this.roomJoined.emit(state);
@@ -95,6 +105,12 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.loading = true;
     sessionStorage.setItem('poker_session', JSON.stringify({ name: this.name.trim() }));
     this.socketService.emit('create-room', { name: this.name.trim(), userId: this.socketService.userId });
+  }
+
+  forgetTeamRoom() {
+    clearTeamRoomMarker();
+    this.teamRoomId = null;
+    this.roomId = '';
   }
 
   joinRoom() {

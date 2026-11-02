@@ -1,5 +1,5 @@
 <app-home *ngIf="!roomState && !reconnecting" (roomJoined)="onRoomJoined($event)"></app-home>
-<div *ngIf="reconnecting && !roomState" class="reconnecting">Reconnecting...</div>
+<div *ngIf="reconnecting && !roomState" class="reconnecting">{{ autoJoining ? 'Joining your team room...' : 'Reconnecting...' }}</div>
 <app-room *ngIf="roomState" [roomState]="roomState"
   (roomUpdated)="onRoomUpdated($event)"
   (left)="onLeft()">
